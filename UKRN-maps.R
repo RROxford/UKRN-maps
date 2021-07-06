@@ -83,7 +83,7 @@ list_networks <-
       "London School of Hygiene", # Added 2020-10-28
       "Loughborough",
       "Manchester Metropolitan", # Added 2020-10-28
-      paste(univ, "Newcastle"), # Added from old www # not in 2021-05-21 file
+      # paste(univ, "Newcastle"), # Added from old www # not in 2021-05-21 file
       "Northumbria",
       "Oxford Brookes", # Added 2020-10-28
       "Queen Mary", # Added 2021-05-24
@@ -95,7 +95,7 @@ list_networks <-
       "Aberdeen",
       paste(univ, "Bath"),
       paste(univ, "Birmingham"), # Added 2021-05-24
-      paste(univ, "Bristol"), # not in 2021-05-21 file
+      paste(univ, "Bristol"), # in 2021-05-21 file
       "Brighton", # Added 2021-05-24
       "Cambridge",
       "Chester",
@@ -120,6 +120,7 @@ list_networks <-
       paste(univ, "Sheffield"), # Added
       paste(univ, "Southampton"), # Added 2020-10-28
       paste(univ, "Surrey"), # Added from www
+      paste(univ, "Sussex"), # Added 2021-07-06
       "West of England",
       "Westminster",
       "Wolverhampton",
@@ -159,13 +160,15 @@ institutions <-
 
     locations %>%
     filter(str_detect(name, paste(list_institutions, collapse = "|"))) %>%
+    bind_rows(babraham) %>%
     arrange(name) %>%
     ## clean names for pretty labels # FIXME this is a bit long-winded
     mutate(name = str_replace(name, "University College London", "UCL"),
            name = str_replace(name, "Royal Veterinary College", "RVC"),
            name = str_replace(name, "King's College London", "KCL"),
            name = str_remove(name, "-upon-Tyne"),
-           name = str_remove(name, str_c(remove_univ_terms, collapse = "|"))
+           name = str_remove(name, str_c(remove_univ_terms, collapse = "|")),
+           name = str_remove(name, " Institute")
            )
 
 ## create tibble of networks
@@ -189,6 +192,7 @@ networks_without_institutions <-
     locations %>%
     filter(str_detect(name, paste(list_networks, collapse = "|"))) %>%
     bind_rows(alan_turing) %>%
+    bind_rows(babraham) %>%
     arrange(name)    
 
 ##################################################
@@ -266,7 +270,24 @@ map_institutions_networks <-
                label.size = 0,
                size = 5,
                alpha = 0.9,
-               vjust = -0.75)
+               nudge_y = -0.25
+               # vjust = -0.75
+               ) +
+    # comment below, and preceding plus symbol, to remove caption with date 
+    labs(title = paste(nrow(networks), "local networks", "and", nrow(institutions), "institutions"),
+         caption = Sys.Date())
+
+## ## if you want to add UKRN logo: https://patchwork.data-imaginist.com/reference/inset_element.html
+## ## save image to folder
+## ## load package
+## library(patchwork)
+## ## load image
+## logo <- png::readPNG("./UKRN_LOGO10.png", native = TRUE)
+## ## add to top right
+## map_institutions_networks <- 
+
+##     map_institutions_networks +
+##     inset_element(logo, 0.8, 0.8, 1, 1, align_to = 'full')
 
 ## save map with transparent background
 map_institutions_networks %>%
@@ -291,9 +312,14 @@ map_institutions <-
                colour = "black",
                fill = "white",
                label.size = 0,
-               size = 5,
+               size = 8,
                alpha = 0.9,
-               vjust = -0.75)
+               ## nudge_y = -0.5
+               # vjust = -0.75
+               )##  +
+    ## # comment below, and preceding plus symbol, to remove caption with date 
+    ## labs(title = paste(nrow(institutions), "institutions"),
+    ##      caption = Sys.Date())
 
 ## save map with transparent background
 map_institutions %>%
@@ -310,8 +336,12 @@ map_networks <-
                colour = ukrn_pink,
                shape = 19,
                fill = ukrn_pink,
-               size = 5) ## +
-    ## ## add label for single network (e.g. Oxford)
+               size = 5)##  +
+    ## # comment below, and preceding plus symbol, to remove caption with date 
+    ## ## labs(title = paste(nrow(networks), "local networks")## ,
+    ## ##      ## caption = Sys.Date()
+    ## ##      ) ## +
+    ## ## ## add label for single network (e.g. Oxford)
     ## geom_label_repel(data =
     ##                      mutate(filter(networks, name == "Oxford"), name = "Oxford"),
     ##            aes(x = lon,
@@ -320,7 +350,7 @@ map_networks <-
     ##            colour = "black",
     ##            fill = "white",
     ##            label.size = 0,
-    ##            size = 5,
+    ##            size = 10,
     ##            alpha = 0.9,
     ##            vjust = -0.75
     ##            )
