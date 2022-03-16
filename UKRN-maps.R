@@ -46,15 +46,19 @@ list_institutions <-
       "Keele",
       "King's College London", # added from website
       paste(univ, "Newcastle"),
+      "Northumbria", # Added 2021-10-25
       "Oxford Brookes",
       "Royal Veterinary",
       "University College London",
       "Aberdeen",
       paste(univ, "Bristol"),
+      "East Anglia", # Added 2021-10-25 
       paste(univ, "Edinburgh"),
       paste(univ, "Glasgow"),
+      paste(univ, "Greenwich"), # Added 2022-03-10
       paste(univ, "Liverpool"),
       paste(univ, "Manchester"), # added 2021-05-24
+      paste(univ, "Oxford"), # Added 2022-03-10
       "Reading",
       paste(univ, "Sheffield"),
       paste(univ, "Surrey"),
@@ -74,11 +78,13 @@ list_networks <-
       "Bournemouth University",
       "Brunel",
       "Cardiff University",
+      "Beatson", # FIXME Added 2022-03-10 manually below
       "Imperial",
       "Keele", # Added # missing www 
       "King's College London",
       "Kingston",
       "Lancaster",
+      "Leeds Beckett", # Added 2022-03-10 FIXME
       "London School of Economics",
       "London School of Hygiene", # Added 2020-10-28
       "Loughborough",
@@ -94,13 +100,15 @@ list_networks <-
       "University College London", # Added # missing www
       "Aberdeen",
       paste(univ, "Bath"),
-      paste(univ, "Birmingham"), # Added 2021-05-24
+      "Brighton", # Added 2022-03-10 FIXME
+      # paste(univ, "Birmingham"), # Added 2021-05-24
       paste(univ, "Bristol"), # in 2021-05-21 file
       "Brighton", # Added 2021-05-24
       "Cambridge",
       "Chester",
       "Durham", # missing www
       "East Anglia", # Added 2021-05-24 
+      "East London", # Added 2021-10-25 
       paste(univ, "Edinburgh"),
       "Essex",
       "Exeter",
@@ -146,6 +154,12 @@ babraham <-
            lat = 52.1325,
            lon = 0.2057)
 
+## based on google search 2022-03-10
+beatson <- 
+
+    tibble(name = "Beatson Institute",
+           lat = 55.90583613,
+           lon = -4.3228839)
 
 ## terms to be removed from labels
 remove_univ_terms <-
@@ -177,6 +191,7 @@ networks <-
     locations %>%
     filter(str_detect(name, str_c(list_networks, collapse = "|"))) %>%
     bind_rows(alan_turing) %>%
+    bind_rows(beatson) %>%
     ## bind_rows(institutions) %>%
     arrange(name) %>%
     mutate(name = str_replace(name, "University College London", "UCL"),
@@ -193,6 +208,7 @@ networks_without_institutions <-
     filter(str_detect(name, paste(list_networks, collapse = "|"))) %>%
     bind_rows(alan_turing) %>%
     bind_rows(babraham) %>%
+    bind_rows(beatson) %>%
     arrange(name)    
 
 ##################################################
@@ -215,6 +231,9 @@ ukrn_pur <- "#4e5087" # from JT 2020-05-21
 ## pink colour
 # ukrn_pink <- brewer.pal(n = 8, name = "Dark2")[4]
 ukrn_pink <- "#ec008c" # from JT 2020-05-21
+
+## green colour
+ukrn_gre <- "#13a89e" # from https://imagecolorpicker.com/
 
 ##################################################
 ## create maps
@@ -259,23 +278,23 @@ map_institutions_networks <-
                colour = ukrn_pink, 
                shape = 19,
                fill = ukrn_pink,
-               size = 5) +
-    # comment below, and preceding plus symbol, to remove labels 
-    geom_label_repel(data = institutions,
-               aes(x = lon,
-                   y = lat,
-                   label = name),
-               colour = "black",
-               fill = "white",
-               label.size = 0,
-               size = 5,
-               alpha = 0.9,
-               nudge_y = -0.25
-               # vjust = -0.75
-               ) +
-    # comment below, and preceding plus symbol, to remove caption with date 
-    labs(title = paste(nrow(networks), "local networks", "and", nrow(institutions), "institutions"),
-         caption = Sys.Date())
+               size = 5) ## +
+    ## # comment below, and preceding plus symbol, to remove labels 
+    ## geom_label_repel(data = institutions,
+    ##            aes(x = lon,
+    ##                y = lat,
+    ##                label = name),
+    ##            colour = "black",
+    ##            fill = "white",
+    ##            label.size = 0,
+    ##            size = 5,
+    ##            alpha = 0.9,
+    ##            nudge_y = -0.25
+    ##            # vjust = -0.75
+    ##            )##  +g
+    ## # comment below, and preceding plus symbol, to remove caption with date 
+    ## labs(title = paste(nrow(networks), "local networks", "and", nrow(institutions), "institutions"),
+    ##      caption = Sys.Date())
 
 ## ## if you want to add UKRN logo: https://patchwork.data-imaginist.com/reference/inset_element.html
 ## ## save image to folder
@@ -291,7 +310,7 @@ map_institutions_networks <-
 
 ## save map with transparent background
 map_institutions_networks %>%
-    ggsave(filename = paste(Sys.Date(), "map-ukrn-combined-transparent.png", sep = "_"),  
+    ggsave(filename = paste(Sys.Date(), "map-ukrn-combined-transparent-no-labels.png", sep = "_"),  
            bg = "transparent")
 
 ## draw map of institutions with label
@@ -359,3 +378,309 @@ map_networks <-
 map_networks %>%
     ggsave(filename = paste(Sys.Date(), "map-ukrn-networks-transparent.png", sep = "_"),  
            bg = "transparent")
+
+##################################################
+## map of separate continents
+##################################################
+
+## extract world
+df_world <- 
+  
+    map_data("world") %>%
+    mutate(lon = long)
+
+## european countries according to wiki
+eu_countries <-
+
+    c("Andorra", "Albania",  "Austria", "Bosnia and Herzegovina",
+      "Belarus", "Belgium","Bulgaria", "Croatia", "Cyprus",
+      "Czech Republic", "Denmark", "Estonia", "Finland","France",
+      "Germany","Greece", "Hungary", "Iceland", "Ireland", "Italy",
+      "Kosovo", "Latvia", "Lithuania", "Luxembourg", "Macedonia",
+      "Malta", "Moldova", "Monaco", "Montenegro", "Netherlands",
+      "Norway", "Poland", "Portugal", "Romania", "San Marino",
+      "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden",
+      "Switzerland", "UK", "Ukraine", "Guernsey", "Isle of Man")
+
+## european countries that have UKRN
+eu_countries_ukrn <-
+
+    c("Finland", "Germany", "Italy", "Norway", "Slovakia", "Sweden",
+      "Switzerland", "Portugal", "UK")
+
+## extract europe from map
+df_eu <- 
+  
+    map_data("world") %>%
+        mutate(lon = long) %>%
+    filter(region %in% eu_countries) %>%
+    filter(lat < 72.5) %>%
+    mutate(ukrn = if_else(region %in% eu_countries_ukrn, "ukrn", "non"))
+
+## centre of countries
+df_eu_centroid <-
+    
+    df_eu %>%
+    group_by(region) %>%
+    summarise(lon = mean(lon),
+              lat = mean(lat)) %>%
+    filter(region %in% eu_countries_ukrn)
+
+## map of europe
+map_europe <-
+
+    ggplot() +
+    aes(x = lon, y = lat) +
+    geom_map(data = df_eu,
+             map = df_eu,
+             aes(map_id = region,
+                 fill = ukrn),
+             ## fill = "lightgray",
+             colour = "white",
+             size = 0.1) +
+    scale_fill_manual(values = c("lightgray", ukrn_pur),
+                      guide = FALSE) +
+    geom_label_repel(data = df_eu_centroid,
+               aes(## x = lon,
+                   ## y = lat,
+                   label = region),
+               colour = "black",
+               fill = "white",
+               label.size = 0,
+               size = 5,
+               alpha = 0.9
+               ## nudge_y = -0.25
+               ) +
+    coord_map("mollweide") +
+    theme_void()
+
+## countries in South America according to wiki
+sa_countries <-
+
+    c("Brazil", "Colombia",  "Paraguay", "Bolivia",
+      "Peru", "Uruguay", "Argentina", "Chile", "Ecuador",
+      "French Guiana", "Suriname", "Guyana", "Venezuela")
+
+## countries that are members of UKRN
+sa_countries_ukrn <-
+
+    c("Brazil")
+
+## extract south america from map 
+df_sa <- 
+  
+    map_data("world") %>%
+    mutate(lon = long) %>%
+    filter(region %in% sa_countries) %>%
+    mutate(ukrn = if_else(region %in% sa_countries_ukrn, "ukrn", "non"))
+
+## center of countries
+df_sa_centroid <-
+    
+    df_sa %>%
+    group_by(region) %>%
+    summarise(lon = mean(lon),
+              lat = mean(lat)) %>%
+    filter(region %in% sa_countries_ukrn)
+
+## map of south america
+map_brazil_cont <-
+
+    ggplot() +
+    aes(x = lon, y = lat) +
+    geom_map(data = df_sa,
+             map = df_sa,
+             aes(map_id = region,
+                 fill = ukrn),
+             ## fill = "lightgray",
+             colour = "white",
+             size = 0.1) +
+    scale_fill_manual(values = c("lightgray", ukrn_pink),
+                      guide = FALSE) +
+    geom_label(data = df_sa_centroid,
+               aes(## x = lon,
+                   ## y = lat,
+                   label = region),
+               colour = "black",
+               fill = "white",
+               label.size = 0,
+               size = 5,
+               alpha = 0.9
+               ## nudge_y = -0.25
+               ) +
+    ## ylim(-35, 7.5) +
+    ## xlim(-95, -35) +
+    coord_map("mollweide") +
+    theme_void()
+
+## map of brazil
+map_brazil <- 
+  
+    ggplot() +
+    aes(x = lon, y = lat) +
+    geom_map(data = filter(df_world, region == "Brazil"),
+             map = filter(df_world, region == "Brazil"),
+             aes(map_id = region),
+             fill = ukrn_pink,
+             colour = "white",
+             size = 0.1) +
+    ## scale_fill_manual(values = c("lightgray", ukrn_pur),
+    ##                   guide = FALSE) +    
+    # ylim(-37.5, 4.5) +
+    coord_map("mollweide") +
+    theme_void()
+
+## countries in Australasia
+aus_countries <-
+
+    c("Australia", "New Zealand",  "Papua New Guinea",
+      "Indonesia", "New Caledonia", "Vanuatu",
+      "Solomon Islands", "Fiji", "Nauru")
+
+## countries that are members of UKRN
+aus_countries_ukrn <-
+
+    c("Australia")
+
+## extract Australasia from map
+df_aus <- 
+    
+    map_data("world") %>%
+    mutate(lon = long) %>%
+    filter(region %in% aus_countries) %>%
+    filter(lon > 100) %>%
+    mutate(ukrn = if_else(region %in% aus_countries_ukrn, "ukrn", "non"))
+
+## centre of country
+df_aus_centroid <-
+    
+    df_aus %>%
+    group_by(region) %>%
+    summarise(lon = mean(lon),
+              lat = mean(lat)) %>%
+    filter(region %in% aus_countries_ukrn)
+
+## map of australasia
+map_australia_cont <-
+
+    ggplot() +
+    aes(x = lon, y = lat) +
+    geom_map(data = df_aus,
+             map = df_aus,
+             aes(map_id = region,
+                 fill = ukrn),
+             ## fill = "lightgray",
+             colour = "white",
+             size = 0.1) +
+    scale_fill_manual(values = c("lightgray", ukrn_pink),
+                      guide = FALSE) +
+    geom_label(data = df_aus_centroid,
+               aes(## x = lon,
+                   ## y = lat,
+                   label = region),
+               colour = "black",
+               fill = "white",
+               label.size = 0,
+               size = 5,
+               alpha = 0.9
+               ## nudge_y = -0.25
+               ) +
+    ## ylim(-35, 7.5) +
+    ## xlim(-95, -35) +
+    coord_map("mollweide") +
+    theme_void()
+
+## map of australia
+map_australia <-
+
+    ggplot() +
+    aes(x = lon, y = lat) +
+    geom_map(data = filter(df_world, region == "Australia"),
+             map = filter(df_world, region == "Australia"),
+             aes(map_id = region),
+             fill = ukrn_pink,
+             colour = "white",
+             size = 0.1) +
+    ## scale_fill_manual(values = c("lightgray", ukrn_pur),
+    ##                   guide = FALSE) +    
+    coord_map("mollweide") +
+    theme_void()
+
+##################################################
+## map of world
+##################################################
+
+## extract world
+df_world <- 
+  
+    map_data("world") %>%
+    mutate(lon = long)
+
+## countries that are members of UKRN
+international_countries <-
+
+    c("Finland", "Germany", "Italy", "Norway", "Slovakia", "Sweden",
+      "Switzerland", "Portugal", "UK", "Brazil", "Australia")
+
+## extract worl with label
+df_international <- 
+  
+    map_data("world") %>%
+    mutate(lon = long) %>%
+    ## filter(region %in% international_countries) %>%
+    mutate(ukrn = if_else(region %in% international_countries, "ukrn", "non"))
+
+## map of world
+map_world <-
+
+    ggplot() +
+    aes(x = lon, y = lat) +
+    geom_map(data = df_international,
+             map = df_international,
+             aes(map_id = region,
+                 fill = ukrn),
+             colour = "white",
+             size = 0.1) +
+    scale_fill_manual(values = c("lightgray", ukrn_gre),
+                      guide = FALSE) +    
+    xlim(c(-180,180)) +
+    coord_map("mollweide") +
+    theme_void()
+
+## save map of world
+map_world %>%
+    ggsave(filename = paste(Sys.Date(), "map-international-transparent.png", sep = "_"),  
+           bg = "transparent")
+
+##################################################
+## combine
+##################################################
+
+## load package
+library(patchwork)
+
+## layout
+layout <- "
+#ABBB
+#ABBB
+"
+
+## combine maps
+(map_institutions_networks + map_world) %>%
+    ggsave(filename = paste(Sys.Date(), "map-ukrn-plus-international-transparent.png", sep = "_"),  
+           bg = "transparent")
+
+## map_world + inset_element(map_institutions_networks, left = 0, bottom = 0, right = 0.1, top = 1)
+
+
+## layout with continents
+layout <- "
+#AAA#
+BAAAC
+"
+
+## add continents together
+wrap_plots(A = map_europe, B = map_brazil_cont, C = map_australia_cont, design = layout) %>%
+    ggsave(filename = paste(Sys.Date(), "worldmap-rn-nolabel-transparent.png", sep = "_"),  
+           bg = "transparent")
+
