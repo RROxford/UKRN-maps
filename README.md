@@ -8,7 +8,7 @@ The code:
 2. selects the relevant institutions and local networks
 3. prints maps
 
-Three different maps can be produced: both institutions and local
-networks, institutions, and local networks. These can be saved to the
-repository with a transparent background, with a name that includes
-the date the map was produced.
+Four different maps can be produced: both institutions and local
+networks, institutions, local networks, and international
+networks. These can be saved to the repository with a transparent
+background, with a name that includes the date the map was produced.
