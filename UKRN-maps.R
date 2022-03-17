@@ -182,7 +182,8 @@ institutions <-
            name = str_replace(name, "King's College London", "KCL"),
            name = str_remove(name, "-upon-Tyne"),
            name = str_remove(name, str_c(remove_univ_terms, collapse = "|")),
-           name = str_remove(name, " Institute")
+           name = str_remove(name, " Institute"),
+           name = str_remove(name, " at Newcastle")
            )
 
 ## create tibble of networks
@@ -324,6 +325,7 @@ map_institutions <-
                shape = 19,
                fill = ukrn_pur,
                size = 10) +
+    ## comment out below for no label
     geom_label_repel(data = institutions,
                aes(x = lon,
                    y = lat,
@@ -331,8 +333,9 @@ map_institutions <-
                colour = "black",
                fill = "white",
                label.size = 0,
-               size = 8,
+               size = 7,
                alpha = 0.9,
+               max.overlaps = 20
                ## nudge_y = -0.5
                # vjust = -0.75
                )##  +
