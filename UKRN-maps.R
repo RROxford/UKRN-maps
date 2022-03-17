@@ -279,7 +279,7 @@ map_institutions_networks <-
                colour = ukrn_pink, 
                shape = 19,
                fill = ukrn_pink,
-               size = 5) ## +
+               size = 5) +
     ## # comment below, and preceding plus symbol, to remove labels 
     ## geom_label_repel(data = institutions,
     ##            aes(x = lon,
@@ -293,6 +293,21 @@ map_institutions_networks <-
     ##            nudge_y = -0.25
     ##            # vjust = -0.75
     ##            )##  +g
+    ## add label for single network (e.g. Oxford)
+    geom_label_repel(data =
+                         mutate(filter(networks, name == "Oxford"),
+                                name = "Oxford"),
+                     aes(x = lon,
+                         y = lat,
+                         label = name),
+                     colour = "black",
+                     fill = "white",
+                     label.size = 0,
+                     size = 10,
+                     alpha = 0.8,
+                     nudge_y = 0.3
+                     ## vjust = -0.75
+                     )
     ## # comment below, and preceding plus symbol, to remove caption with date 
     ## labs(title = paste(nrow(networks), "local networks", "and", nrow(institutions), "institutions"),
     ##      caption = Sys.Date())
